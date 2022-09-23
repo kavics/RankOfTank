@@ -1,0 +1,21 @@
+{
+  "App": {
+    "Users": [
+      {
+        "name": "User1",
+        "accountId": "123456789"
+      },
+      {
+        "name": "User2",
+        "accountId": "987654321"
+      }
+    ],
+    "Access": {
+      "ApiKey": "verysecretapikey"
+    },
+    "anything": {
+      "asdf": "Asdf",
+      "qwer": 42
+    }
+  }
+}
