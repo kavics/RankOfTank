@@ -14,9 +14,14 @@ public class ConnectorTests : TestBase
 {
     private class TestDataLoader : IDataLoader
     {
-        public Task<string> LoadDataAsync(Query query, User user, CancellationToken cancel)
+        public Task<RoTData> LoadDataAsync(Query query, User user, CancellationToken cancel)
         {
-            return Task.FromResult($"LoadDataAsync(query: {query}, user: \"{user.Name}:{user.AccountId}\"");
+            return Task.FromResult(new RoTData
+                {
+                    CreationDate = DateTime.UtcNow,
+                    Data = $"LoadDataAsync(query: {query}, user: \"{user.Name}:{user.AccountId}\""
+                }
+            );
         }
     }
 
@@ -27,6 +32,7 @@ public class ConnectorTests : TestBase
         {
             services.AddSingleton<IWotConnector, WotConnector>();
             services.AddSingleton<IDataLoader, TestDataLoader>();
+            services.AddSingleton<IDataStorage, DevNullDataStorage>();
         });
 
         var user = new User {Name = "User1", AccountId = "1234"};
@@ -36,6 +42,6 @@ public class ConnectorTests : TestBase
         var downloaded = await connector.DownloadUserDataAsync(user, CancellationToken.None);
 
         // ASSERT
-        Assert.AreEqual($"LoadDataAsync(query: AccountInfo, user: \"{user.Name}:{user.AccountId}\"", downloaded);
+        Assert.AreEqual($"LoadDataAsync(query: AccountInfo, user: \"{user.Name}:{user.AccountId}\"", downloaded.Data);
     }
 }

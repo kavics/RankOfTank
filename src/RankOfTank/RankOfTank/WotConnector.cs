@@ -1,16 +1,34 @@
-﻿namespace RankOfTank;
+﻿using Microsoft.Extensions.Logging;
+
+namespace RankOfTank;
 
 public class WotConnector : IWotConnector
 {
     private readonly IDataLoader _dataLoader;
+    private readonly IDataStorage _dataStorage;
+    private readonly ILogger _logger;
 
-    public WotConnector(IDataLoader dataLoader)
+
+    public WotConnector(IDataLoader dataLoader, IDataStorage dataStorage, ILogger<WotConnector> logger)
     {
         _dataLoader = dataLoader;
+        _dataStorage = dataStorage;
+        _logger = logger;
     }
 
-    public Task<string> DownloadUserDataAsync(User user, CancellationToken cancel)
+    public async Task<RoTData> DownloadUserDataAsync(User user, CancellationToken cancel)
     {
-        return _dataLoader.LoadDataAsync(Query.AccountInfo, user, cancel);
+        var storedData = await _dataStorage.LoadDataAsync(Query.AccountInfo, user, cancel).ConfigureAwait(false);
+        if (storedData != null && storedData.CreationDate < DateTime.UtcNow.AddMinutes(10))
+        {
+            _logger.LogTrace("Data from storage");
+            return storedData;
+        }
+
+        _logger.LogTrace("Data from web");
+        var loadedData = await _dataLoader.LoadDataAsync(Query.AccountInfo, user, cancel);
+        await _dataStorage.SaveDataAsync(Query.AccountInfo, user, loadedData.Data, cancel);
+
+        return loadedData;
     }
 }

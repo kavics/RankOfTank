@@ -22,8 +22,8 @@ public class RoTController : IRoTController
         if (user == null)
             return null;
 
-        var data = await _connector.DownloadUserDataAsync(user, cancel).ConfigureAwait(false);
-        var userData = DeserializeData<WotUserData>(data, user);
+        var rotData = await _connector.DownloadUserDataAsync(user, cancel).ConfigureAwait(false);
+        var userData = DeserializeData<WotUserData>(rotData.Data, user);
         return userData;
     }
 

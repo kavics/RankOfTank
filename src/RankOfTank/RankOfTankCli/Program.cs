@@ -10,6 +10,7 @@ static void ConfigureServices(IServiceCollection services)
     {
         builder.AddConsole();
         builder.AddDebug();
+        builder.SetMinimumLevel(LogLevel.Trace);
     });
 
     var configuration = new ConfigurationBuilder()

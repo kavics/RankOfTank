@@ -16,10 +16,11 @@ internal class WebLoader : IDataLoader
         _accessOptions = accessOptions.Value;
     }
 
-    public Task<string> LoadDataAsync(Query query, User user, CancellationToken cancel)
+    public async Task<RoTData> LoadDataAsync(Query query, User user, CancellationToken cancel)
     {
         var url = GetUrl(query, user);
-        return ProcessWebRequestResponseAsync(url, HttpMethod.Get, cancel);
+        var data = await ProcessWebRequestResponseAsync(url, HttpMethod.Get, cancel).ConfigureAwait(false);
+        return new RoTData {CreationDate = DateTime.UtcNow, Data = data};
     }
 
     private string GetUrl(Query query, User user)

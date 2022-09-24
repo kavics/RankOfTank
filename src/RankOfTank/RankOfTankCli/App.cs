@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using RankOfTank;
+using RankOfTank.WotModels;
 
 namespace RankOfTankCli;
 
@@ -24,14 +25,21 @@ internal class App
 
         var userNames = _userStore.GetUserNames();
         Console.WriteLine("Known users ({0})", userNames.Length);
-        foreach(var userName in userNames)
-            Console.WriteLine("  {0}", userName);
-        Console.WriteLine();
-
-        var userData = await _roTController.GetUserDataAsync("gyebi5", cancel);
+        foreach (var userName in userNames)
+        {
+            var userData = await _roTController.GetUserDataAsync(userName, cancel).ConfigureAwait(false);
+            WriteHeadData(userData);
+        }
 
         _logger.LogInformation("Finished!");
 
         await Task.CompletedTask;
+    }
+
+    private void WriteHeadData(WotUserData userData)
+    {
+        Console.WriteLine($"{userData.nickname}:");
+        Console.WriteLine($"  battles: {userData.statistics.all.battles}");
+        Console.WriteLine($"  last battle: {userData.last_battle_time.ToDateTime().ToLocalTime()}");
     }
 }

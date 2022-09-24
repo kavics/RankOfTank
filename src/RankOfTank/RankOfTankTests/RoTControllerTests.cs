@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RankOfTank;
+using RankOfTank.WotModels;
 
 namespace RankOfTankTests;
 
@@ -26,10 +27,14 @@ public class RoTControllerTests : TestBase
 
     private class TestWotConnector : IWotConnector
     {
-        public Task<string> DownloadUserDataAsync(User user, CancellationToken cancel)
+        public Task<RoTData> DownloadUserDataAsync(User user, CancellationToken cancel)
         {
-            var fileContent = TestBase.GetFileContent("UserDataForControllerTest.json");
-            return Task.FromResult(fileContent);
+            var fileName = "UserDataForControllerTest.json";
+            return Task.FromResult(new RoTData
+            {
+                CreationDate = GetCreationDate(fileName),
+                Data = GetFileContent(fileName)
+            });
         }
     }
 
@@ -49,6 +54,8 @@ public class RoTControllerTests : TestBase
         var result = await controller.GetUserDataAsync("User1", CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
-        Assert.Fail();
+        var userData = result as WotUserData;
+        Assert.IsNotNull(userData);
+        Assert.AreEqual(typeof(WotUserData), result.GetType());
     }
 }

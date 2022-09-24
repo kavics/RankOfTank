@@ -30,4 +30,9 @@ public class TestBase
         using var reader = new StreamReader(fileName);
         return reader.ReadToEnd();
     }
+    public static DateTime GetCreationDate(string fileName)
+    {
+        var file = new FileInfo(fileName);
+        return file.CreationTime;
+    }
 }
