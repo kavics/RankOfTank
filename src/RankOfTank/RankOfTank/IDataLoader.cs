@@ -9,5 +9,5 @@ public interface IDataLoader
     /// <param name="user"></param>
     /// <param name="cancel"></param>
     /// <returns></returns>
-    Task<RoTData> LoadDataAsync(Query query, User user, CancellationToken cancel);
+    Task<RoTData?> LoadDataAsync(Query query, User user, CancellationToken cancel);
 }

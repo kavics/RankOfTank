@@ -36,8 +36,13 @@ internal class App
         await Task.CompletedTask;
     }
 
-    private void WriteHeadData(WotUserData userData)
+    private void WriteHeadData(WotUserData? userData)
     {
+        if (userData == null)
+        {
+            Console.WriteLine("[null]");
+            return;
+        }
         Console.WriteLine($"{userData.nickname}:");
         Console.WriteLine($"  battles: {userData.statistics.all.battles}");
         Console.WriteLine($"  last battle: {userData.last_battle_time.ToDateTime().ToLocalTime()}");

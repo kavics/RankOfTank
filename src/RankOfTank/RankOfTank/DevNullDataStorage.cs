@@ -2,11 +2,11 @@
 
 public class DevNullDataStorage : IDataStorage
 {
-    public Task<RoTData> LoadDataAsync(Query query, User user, CancellationToken cancel)
+    public Task<RoTData?> LoadDataAsync(Query query, User user, CancellationToken cancel)
     {
-        return Task.FromResult((RoTData)null);
+        return Task.FromResult(default(RoTData));
     }
-    public Task SaveDataAsync(Query query, User user, string data, CancellationToken cancel)
+    public Task SaveDataAsync(Query query, User user, RoTData data, CancellationToken cancel)
     {
         return Task.CompletedTask;
     }

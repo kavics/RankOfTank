@@ -16,7 +16,7 @@ public class WotConnector : IWotConnector
         _logger = logger;
     }
 
-    public async Task<RoTData> DownloadUserDataAsync(User user, CancellationToken cancel)
+    public async Task<RoTData?> DownloadUserDataAsync(User user, CancellationToken cancel)
     {
         var storedData = await _dataStorage.LoadDataAsync(Query.AccountInfo, user, cancel).ConfigureAwait(false);
         if (storedData != null && storedData.CreationDate < DateTime.UtcNow.AddMinutes(10))
@@ -27,7 +27,8 @@ public class WotConnector : IWotConnector
 
         _logger.LogTrace("Data from web");
         var loadedData = await _dataLoader.LoadDataAsync(Query.AccountInfo, user, cancel);
-        await _dataStorage.SaveDataAsync(Query.AccountInfo, user, loadedData.Data, cancel);
+        if(loadedData != null)
+            await _dataStorage.SaveDataAsync(Query.AccountInfo, user, loadedData, cancel);
 
         return loadedData;
     }

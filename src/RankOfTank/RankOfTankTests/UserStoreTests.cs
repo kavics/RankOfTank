@@ -57,7 +57,7 @@ public class UserStoreTests : TestBase
 
         // ACTION
         var userStore = services.GetRequiredService<IUserStore>();
-        userStore.AddUser(new User {Name = "User3", AccountId = "123454321" });
+        userStore.AddUser(new User("User3", "123454321"));
 
         // ASSERT
         var userNames = userStore.GetUserNames().OrderBy(x => x).ToArray();
@@ -77,8 +77,8 @@ public class UserStoreTests : TestBase
 
         // ACTION
         var userStore = services.GetRequiredService<IUserStore>();
-        userStore.AddUser(new User { Name = "User3", AccountId = "123454321" });
-        userStore.AddUser(new User { Name = "User3", AccountId = "987656789" });
+        userStore.AddUser(new User("User3", "123454321"));
+        userStore.AddUser(new User("User3", "987656789"));
 
         // ASSERT
         var userNames = userStore.GetUserNames().OrderBy(x => x).ToArray();

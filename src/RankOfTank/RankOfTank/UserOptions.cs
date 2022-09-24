@@ -2,11 +2,11 @@
 
 public class UserData
 {
-    public string Name { get; set; }
-    public string AccountId { get; set; }
+    public string? Name { get; set; }
+    public string? AccountId { get; set; }
 }
 
 public class UserOptions
 {
-    public IEnumerable<UserData> Users { get; set; }
+    public IEnumerable<UserData>? Users { get; set; }
 }

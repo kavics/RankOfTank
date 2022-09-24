@@ -9,9 +9,17 @@ public class UserStore : IUserStore
     public UserStore(IOptions<UserOptions> configuration)
     {
         var users = configuration?.Value.Users;
-        if(users != null)
+        if (users != null)
+        {
             foreach (var userData in users)
-                AddUser(new User{Name = userData.Name, AccountId = userData.AccountId});
+            {
+                if (string.IsNullOrEmpty(userData.Name))
+                    continue;
+                if (string.IsNullOrEmpty(userData.AccountId))
+                    continue;
+                AddUser(new User(userData.Name, userData.AccountId));
+            }
+        }
     }
 
     public virtual void AddUser(User user) => _users[user.Name] = user;

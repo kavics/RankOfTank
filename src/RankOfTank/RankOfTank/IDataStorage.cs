@@ -2,5 +2,5 @@
 
 public interface IDataStorage : IDataLoader
 {
-    Task SaveDataAsync(Query query, User user, string data, CancellationToken cancel);
+    Task SaveDataAsync(Query query, User user, RoTData data, CancellationToken cancel);
 }

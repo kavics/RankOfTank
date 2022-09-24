@@ -1,4 +1,7 @@
-﻿namespace RankOfTank.WotModels
+﻿// ReSharper disable InconsistentNaming
+// ReSharper disable UnusedMember.Global
+#pragma warning disable CS8618
+namespace RankOfTank.WotModels
 {
     public class WotUserData
     {
@@ -6,7 +9,8 @@
         public string client_language { get; set; }
         /// <summary>Last battle time.</summary>
         public long last_battle_time { get; set; }
-        /// <summary>Player account ID. Number part of the your Wargaming.net OpenID (e.g. https://eu.wargaming.net/id/<numbers>-<nickname>)</summary>
+        /// <summary>Player account ID. Number part of the your Wargaming.net OpenID
+        /// (e.g. https://eu.wargaming.net/id/&lt;numbers&gt;-&lt;nickname&gt;)</summary>
         public long account_id { get; set; }
         /// <summary>Clan ID.</summary>
         public object clan_id { get; set; }

@@ -1,4 +1,8 @@
-﻿namespace RankOfTank.WotModels
+﻿// ReSharper disable InconsistentNaming
+// ReSharper disable UnusedMember.Global
+#pragma warning disable CS8618
+
+namespace RankOfTank.WotModels
 {
     public class WotStatistics
     {
@@ -6,7 +10,7 @@
         public int? max_frags_tank_id { get; set; }
         /// <summary>Vehicle used to gain maximum experience per battle.</summary>
         public int? max_xp_tank_id { get; set; }
-        /// <summary>Maximumax_damagem experience per battle.</summary>
+        /// <summary>Maximum damage experience per battle.</summary>
         public int max_xp { get; set; }
         /// <summary>Trees knocked down.</summary>
         public int trees_cut { get; set; }

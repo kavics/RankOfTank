@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RankOfTank;
@@ -19,7 +20,7 @@ public class RoTControllerTests : TestBase
 
         public User? GetUser(string userName)
         {
-            return new User {Name = userName, AccountId = "000000000" };
+            return new User(userName, "000000000");
         }
 
         public string[] GetUserNames() { throw new NotImplementedException(); }
@@ -27,14 +28,14 @@ public class RoTControllerTests : TestBase
 
     private class TestWotConnector : IWotConnector
     {
-        public Task<RoTData> DownloadUserDataAsync(User user, CancellationToken cancel)
+        public Task<RoTData?> DownloadUserDataAsync(User user, CancellationToken cancel)
         {
             var fileName = "UserDataForControllerTest.json";
-            return Task.FromResult(new RoTData
+            var result = new RoTData(GetFileContent(fileName))
             {
-                CreationDate = GetCreationDate(fileName),
-                Data = GetFileContent(fileName)
-            });
+                CreationDate = GetCreationDate(fileName)
+            };
+            return Task.FromResult((RoTData?)result);
         }
     }
 
@@ -44,6 +45,7 @@ public class RoTControllerTests : TestBase
         var services = BuildServices("testSettings.json", services =>
         {
             services
+                .AddLogging(logging => logging.AddDebug())
                 .AddSingleton<IRoTController, RoTController>()
                 .AddSingleton<IUserStore, TestUserStore>()
                 .AddSingleton<IWotConnector, TestWotConnector>();
@@ -56,6 +58,5 @@ public class RoTControllerTests : TestBase
         // ASSERT
         var userData = result as WotUserData;
         Assert.IsNotNull(userData);
-        Assert.AreEqual(typeof(WotUserData), result.GetType());
     }
 }
