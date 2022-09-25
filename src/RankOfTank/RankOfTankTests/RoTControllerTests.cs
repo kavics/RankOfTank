@@ -1,16 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using RankOfTank;
-using RankOfTank.WotModels;
 
 namespace RankOfTankTests;
 
@@ -34,16 +29,15 @@ public class RoTControllerTests : TestBase
             services
                 .AddLogging(logging => logging.AddDebug())
                 .AddSingleton<IRoTController, RoTController>()
-                .AddSingleton<IUserStore>(userStore)
-                .AddSingleton<IWotConnector>(connector);
+                .AddSingleton(userStore)
+                .AddSingleton(connector);
         });
 
         // ACTION
         var controller = services.GetRequiredService<IRoTController>();
-        var result = await controller.GetUserDataAsync("User1", CancellationToken.None).ConfigureAwait(false);
+        var userData = await controller.GetUserDataAsync("User1", CancellationToken.None).ConfigureAwait(false);
 
         // ASSERT
-        var userData = result as WotUserData;
         Assert.IsNotNull(userData);
     }
     [TestMethod]
@@ -63,8 +57,8 @@ public class RoTControllerTests : TestBase
             services
                 .AddLogging(logging => logging.AddDebug())
                 .AddSingleton<IRoTController, RoTController>()
-                .AddSingleton<IUserStore>(userStore)
-                .AddSingleton<IWotConnector>(connector);
+                .AddSingleton(userStore)
+                .AddSingleton(connector);
         });
 
         // ACTION
@@ -91,8 +85,8 @@ public class RoTControllerTests : TestBase
             services
                 .AddLogging(logging => logging.AddDebug())
                 .AddSingleton<IRoTController, RoTController>()
-                .AddSingleton<IUserStore>(userStore)
-                .AddSingleton<IWotConnector>(connector);
+                .AddSingleton(userStore)
+                .AddSingleton(connector);
         });
 
         // ACTION
@@ -119,11 +113,9 @@ public class RoTControllerTests : TestBase
             services
                 .AddLogging(logging => logging.AddDebug())
                 .AddSingleton<IRoTController, RoTController>()
-                .AddSingleton<IUserStore>(userStore)
-                .AddSingleton<IWotConnector>(connector);
+                .AddSingleton(userStore)
+                .AddSingleton(connector);
         });
-        //var connector = (TestWotConnector)services.GetRequiredService<IWotConnector>();
-        //connector.TestFileName = "WrongUserDataForControllerTest.json";
 
         // ACTION
         var controller = services.GetRequiredService<IRoTController>();
