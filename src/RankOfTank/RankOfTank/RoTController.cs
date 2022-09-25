@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RankOfTank.WotModels;
 
@@ -7,8 +6,8 @@ namespace RankOfTank;
 
 public class RoTController : IRoTController
 {
-    private IUserStore _userStore;
-    private IWotConnector _connector;
+    private readonly IUserStore _userStore;
+    private readonly IWotConnector _connector;
 
     public RoTController(IUserStore userStore, IWotConnector connector)
     {
