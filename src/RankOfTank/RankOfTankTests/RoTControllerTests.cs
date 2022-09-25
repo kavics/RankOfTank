@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 using RankOfTank;
 using RankOfTank.WotModels;
 
@@ -16,53 +17,26 @@ namespace RankOfTankTests;
 [TestClass]
 public class RoTControllerTests : TestBase
 {
-    private class TestUserStore : IUserStore
-    {
-        private readonly List<User> _users = new();
-
-        public void AddUser(User user) { _users.Add(user); }
-
-        public User? GetUser(string userName)
-        {
-            return _users.FirstOrDefault(x => x.Name == userName);
-        }
-
-        public string[] GetUserNames() => _users.Select(x => x.Name).ToArray();
-    }
-
-    private class TestWotConnector : IWotConnector
-    {
-        public string TestFileName { get; set; }
-
-        public Task<RoTData?> DownloadUserDataAsync(User user, CancellationToken cancel)
-        {
-            if (user.AccountId != "000000000")
-                return Task.FromResult((RoTData?)null);
-
-            var result = new RoTData(GetFileContent(TestFileName))
-            {
-                CreationDate = GetCreationDate(TestFileName)
-            };
-            return Task.FromResult((RoTData?)result);
-        }
-    }
-
     [TestMethod]
     public async Task Controller_DownloadUserData()
     {
+        var user = new User("User1", "000000000");
+        var userStore = Substitute.For<IUserStore>();
+        userStore.GetUser("User1").Returns(user);
+
+        var rotData = new RoTData(GetFileContent("UserDataForControllerTest.json")) { CreationDate = DateTime.UtcNow };
+        var connectorResult = Task.FromResult((RoTData?)rotData);
+        var connector = Substitute.For<IWotConnector>();
+        connector.DownloadUserDataAsync(user, CancellationToken.None).Returns(connectorResult);
+
         var services = BuildServices("testSettings.json", services =>
         {
             services
                 .AddLogging(logging => logging.AddDebug())
                 .AddSingleton<IRoTController, RoTController>()
-                .AddSingleton<IUserStore, TestUserStore>()
-                .AddSingleton<IWotConnector, TestWotConnector>();
+                .AddSingleton<IUserStore>(userStore)
+                .AddSingleton<IWotConnector>(connector);
         });
-        var userStore = services.GetRequiredService<IUserStore>();
-        userStore.AddUser(new User("User1", "000000000"));
-        var connector = (TestWotConnector)services.GetRequiredService<IWotConnector>();
-        connector.TestFileName = "UserDataForControllerTest.json";
-
 
         // ACTION
         var controller = services.GetRequiredService<IRoTController>();
@@ -75,18 +49,23 @@ public class RoTControllerTests : TestBase
     [TestMethod]
     public async Task Controller_DownloadUserData_UnknownUser()
     {
+        var user = new User("User1", "000000000");
+        var userStore = Substitute.For<IUserStore>();
+        userStore.GetUser("User1").Returns(user);
+
+        var rotData = new RoTData(GetFileContent("UserDataForControllerTest.json")) { CreationDate = DateTime.UtcNow };
+        var connectorResult = Task.FromResult((RoTData?)rotData);
+        var connector = Substitute.For<IWotConnector>();
+        connector.DownloadUserDataAsync(user, CancellationToken.None).Returns(connectorResult);
+
         var services = BuildServices("testSettings.json", services =>
         {
             services
                 .AddLogging(logging => logging.AddDebug())
                 .AddSingleton<IRoTController, RoTController>()
-                .AddSingleton<IUserStore, TestUserStore>()
-                .AddSingleton<IWotConnector, TestWotConnector>();
+                .AddSingleton<IUserStore>(userStore)
+                .AddSingleton<IWotConnector>(connector);
         });
-        var userStore = services.GetRequiredService<IUserStore>();
-        userStore.AddUser(new User("User1", "000000000"));
-        var connector = (TestWotConnector)services.GetRequiredService<IWotConnector>();
-        connector.TestFileName = "UserDataForControllerTest.json";
 
         // ACTION
         var controller = services.GetRequiredService<IRoTController>();
@@ -98,18 +77,23 @@ public class RoTControllerTests : TestBase
     [TestMethod]
     public async Task Controller_DownloadUserData_NotStoredUser()
     {
+        var user = new User("User1", "000042000");
+        var userStore = Substitute.For<IUserStore>();
+        userStore.GetUser("User1").Returns(user);
+
+        var rotData = new RoTData(GetFileContent("UserDataForControllerTest.json")) { CreationDate = DateTime.UtcNow };
+        var connectorResult = Task.FromResult((RoTData?)rotData);
+        var connector = Substitute.For<IWotConnector>();
+        connector.DownloadUserDataAsync(user, CancellationToken.None).Returns(connectorResult);
+
         var services = BuildServices("testSettings.json", services =>
         {
             services
                 .AddLogging(logging => logging.AddDebug())
                 .AddSingleton<IRoTController, RoTController>()
-                .AddSingleton<IUserStore, TestUserStore>()
-                .AddSingleton<IWotConnector, TestWotConnector>();
+                .AddSingleton<IUserStore>(userStore)
+                .AddSingleton<IWotConnector>(connector);
         });
-        var userStore = services.GetRequiredService<IUserStore>();
-        userStore.AddUser(new User("User1", "000042000"));
-        var connector = (TestWotConnector)services.GetRequiredService<IWotConnector>();
-        connector.TestFileName = "UserDataForControllerTest.json";
 
         // ACTION
         var controller = services.GetRequiredService<IRoTController>();
@@ -121,18 +105,25 @@ public class RoTControllerTests : TestBase
     [TestMethod]
     public async Task Controller_DownloadUserData_WrongDataFormat()
     {
+        var user = new User("User1", "000000000");
+        var userStore = Substitute.For<IUserStore>();
+        userStore.GetUser("User1").Returns(user);
+
+        var rotData = new RoTData("{}") {CreationDate = DateTime.UtcNow};
+        var connectorResult = Task.FromResult((RoTData?)rotData);
+        var connector = Substitute.For<IWotConnector>();
+        connector.DownloadUserDataAsync(user, CancellationToken.None).Returns(connectorResult);
+
         var services = BuildServices("testSettings.json", services =>
         {
             services
                 .AddLogging(logging => logging.AddDebug())
                 .AddSingleton<IRoTController, RoTController>()
-                .AddSingleton<IUserStore, TestUserStore>()
-                .AddSingleton<IWotConnector, TestWotConnector>();
+                .AddSingleton<IUserStore>(userStore)
+                .AddSingleton<IWotConnector>(connector);
         });
-        var userStore = services.GetRequiredService<IUserStore>();
-        userStore.AddUser(new User("User1", "000000000"));
-        var connector = (TestWotConnector)services.GetRequiredService<IWotConnector>();
-        connector.TestFileName = "WrongUserDataForControllerTest.json";
+        //var connector = (TestWotConnector)services.GetRequiredService<IWotConnector>();
+        //connector.TestFileName = "WrongUserDataForControllerTest.json";
 
         // ACTION
         var controller = services.GetRequiredService<IRoTController>();
