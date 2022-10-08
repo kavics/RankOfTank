@@ -25,6 +25,15 @@ internal class App
 
         var userNames = _userStore.GetUserNames();
         Console.WriteLine("Known users ({0})", userNames.Length);
+
+        foreach (var userName in userNames)
+        {
+            var userData = await _roTController.GetUserDataAsync(userName, cancel).ConfigureAwait(false);
+            WriteHeadData(userData);
+        }
+
+        Console.WriteLine("One more time:");
+
         foreach (var userName in userNames)
         {
             var userData = await _roTController.GetUserDataAsync(userName, cancel).ConfigureAwait(false);

@@ -13,7 +13,7 @@ public static class Extensions
         services.AddSingleton<IWotConnector, WotConnector>();
         services.AddSingleton<IUserStore, UserStore>();
         services.AddSingleton<IDataLoader, WebLoader>();
-        services.AddSingleton<IDataStorage, DevNullDataStorage>();
+        services.AddSingleton<IDataStorage, InMemoryDataStorage>();
 
         return services;
     }
