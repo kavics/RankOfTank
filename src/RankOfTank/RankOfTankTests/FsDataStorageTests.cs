@@ -1,18 +1,50 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RankOfTank;
+using System.Threading.Tasks;
+using System.Threading;
+using System;
+using System.IO;
+using Microsoft.Extensions.DependencyInjection;
+using RankOfTankTests.Infrastructure;
 
 namespace RankOfTankTests;
 
 [TestClass]
-public class InMemoryDataStorageTests : TestBase
+public class FsDataStorageTests
 {
-    [TestMethod]
-    public async Task DataStorage_InMem_LoadFromEmpty()
+    private string _databaseDirectory;
+    private IServiceProvider _services;
+
+    public TestContext TestContext { get; set; }
+
+    [TestInitialize]
+    public void InitializeTest()
     {
-        var storage = new InMemoryDataStorage();
+        _databaseDirectory = Path.Combine(TestContext.TestRunDirectory, TestContext.TestName) ;
+
+        _services = new ServiceCollection()
+            .AddFsDataStorage(options =>
+            {
+                options.DatabaseDirectory = _databaseDirectory;
+            })
+            .BuildServiceProvider();
+    }
+
+    [TestMethod]
+    public void DataStorage_Fs_TestInfrastructure()
+    {
+        // Checks InitializeTest method (_databaseDirectory, _services)
+        var storage = _services.GetRequiredService<IDataStorage>();
+        var storageAcc = new ObjectAccessor(storage);
+        var options = (FsDataStorageOptions)storageAcc.GetField("_options");
+        Assert.IsNotNull(options);
+        Assert.AreEqual(_databaseDirectory, options.DatabaseDirectory);
+    }
+
+    [TestMethod]
+    public async Task DataStorage_Fs_LoadFromEmpty()
+    {
+        var storage = _services.GetRequiredService<IDataStorage>();
 
         // ACTION
         var user = new User("User1", "000000000");
@@ -22,9 +54,10 @@ public class InMemoryDataStorageTests : TestBase
         Assert.IsNull(result);
     }
     [TestMethod]
-    public async Task DataStorage_InMem_SaveAndLoadBack()
+    public async Task DataStorage_Fs_SaveAndLoadBack()
     {
-        var storage = new InMemoryDataStorage();
+        var storage = _services.GetRequiredService<IDataStorage>();
+
         var query = Query.AccountInfo;
         var user = new User("User1", "000000000");
         var data = new RoTData("Data1") { CreationDate = DateTime.UtcNow.AddHours(-1) };
@@ -38,9 +71,10 @@ public class InMemoryDataStorageTests : TestBase
         Assert.AreEqual("Data1", result.Data);
     }
     [TestMethod]
-    public async Task DataStorage_InMem_LoadLast()
+    public async Task DataStorage_Fs_LoadLast()
     {
-        var storage = new InMemoryDataStorage();
+        var storage = _services.GetRequiredService<IDataStorage>();
+
         var query = Query.AccountInfo;
         var user = new User("User1", "000000000");
         var date1 = DateTime.UtcNow.AddHours(-5);
@@ -63,4 +97,5 @@ public class InMemoryDataStorageTests : TestBase
         Assert.AreEqual("Data3", result.Data);
         Assert.AreEqual(date3, result.CreationDate);
     }
+
 }

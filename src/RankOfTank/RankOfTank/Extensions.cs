@@ -13,7 +13,19 @@ public static class Extensions
         services.AddSingleton<IWotConnector, WotConnector>();
         services.AddSingleton<IUserStore, UserStore>();
         services.AddSingleton<IDataLoader, WebLoader>();
-        services.AddSingleton<IDataStorage, InMemoryDataStorage>();
+        services.AddInMemoryDataStorage();
+
+        return services;
+    }
+
+    public static IServiceCollection AddInMemoryDataStorage(this IServiceCollection services)
+    {
+        return services.AddSingleton<IDataStorage, InMemoryDataStorage>();
+    }
+    public static IServiceCollection AddFsDataStorage(this IServiceCollection services, Action<FsDataStorageOptions> configure = null)
+    {
+        services.AddSingleton<IDataStorage, FsDataStorage>();
+        services.Configure<FsDataStorageOptions>(x => { configure?.Invoke(x); });
 
         return services;
     }
