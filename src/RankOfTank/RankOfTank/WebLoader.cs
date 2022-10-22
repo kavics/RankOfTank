@@ -16,11 +16,11 @@ internal class WebLoader : IDataLoader
         _accessOptions = accessOptions.Value;
     }
 
-    public async Task<RoTData> LoadDataAsync(Query query, User user, CancellationToken cancel)
+    public async Task<RoTData?> LoadDataAsync(Query query, User user, CancellationToken cancel)
     {
         var url = GetUrl(query, user);
         var data = await ProcessWebRequestResponseAsync(url, HttpMethod.Get, cancel).ConfigureAwait(false);
-        return new RoTData {CreationDate = DateTime.UtcNow, Data = data};
+        return new RoTData(data) {CreationDate = DateTime.UtcNow};
     }
 
     private string GetUrl(Query query, User user)
@@ -29,7 +29,7 @@ internal class WebLoader : IDataLoader
         {
             case Query.AccountInfo:
                 return $"http://{Host}/wot/account/info/" +
-                          $"?application_id={_accessOptions.Access.ApiKey}" +
+                          $"?application_id={_accessOptions.Access?.ApiKey}" +
                           $"&account_id={user.AccountId}";
 
             default:

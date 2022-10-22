@@ -25,6 +25,15 @@ internal class App
 
         var userNames = _userStore.GetUserNames();
         Console.WriteLine("Known users ({0})", userNames.Length);
+
+        foreach (var userName in userNames)
+        {
+            var userData = await _roTController.GetUserDataAsync(userName, cancel).ConfigureAwait(false);
+            WriteHeadData(userData);
+        }
+
+        Console.WriteLine("One more time:");
+
         foreach (var userName in userNames)
         {
             var userData = await _roTController.GetUserDataAsync(userName, cancel).ConfigureAwait(false);
@@ -36,8 +45,13 @@ internal class App
         await Task.CompletedTask;
     }
 
-    private void WriteHeadData(WotUserData userData)
+    private void WriteHeadData(WotUserData? userData)
     {
+        if (userData == null)
+        {
+            Console.WriteLine("[null]");
+            return;
+        }
         Console.WriteLine($"{userData.nickname}:");
         Console.WriteLine($"  battles: {userData.statistics.all.battles}");
         Console.WriteLine($"  last battle: {userData.last_battle_time.ToDateTime().ToLocalTime()}");

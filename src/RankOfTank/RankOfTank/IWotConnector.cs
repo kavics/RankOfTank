@@ -2,5 +2,5 @@
 
 public interface IWotConnector
 {
-    Task<RoTData> DownloadUserDataAsync(User user, CancellationToken cancel);
+    Task<RoTData?> DownloadUserDataAsync(User user, CancellationToken cancel);
 }
