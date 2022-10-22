@@ -12,7 +12,7 @@ namespace RankOfTankTests;
 [TestClass]
 public class FsDataStorageTests
 {
-    private string _databaseDirectory;
+    private string? _databaseDirectory;
     private IServiceProvider _services;
 
     public TestContext TestContext { get; set; }

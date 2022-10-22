@@ -7,17 +7,26 @@ namespace RankOfTank;
 
 public class FsDataStorageOptions
 {
-    public string DatabaseDirectory { get; set; }
+    public string? DatabaseDirectory { get; set; }
 }
 
 public class FsDataStorage : IDataStorage
 {
-    private readonly FsDataStorageOptions _options;
+    private readonly FsDataStorageOptions __options;
+    private readonly string _databaseDirectory;
 
     public FsDataStorage(IOptions<FsDataStorageOptions> options)
     {
-        _options = options?.Value ?? throw new ArgumentException("Missing FsDataStorageOptions.");
+        __options = options?.Value ?? throw new ArgumentException("Missing FsDataStorageOptions.");
+        _databaseDirectory = __options.DatabaseDirectory ?? GetDefaultDatabaseDirectory();
     }
+    private string GetDefaultDatabaseDirectory()
+    {
+        var x = AppDomain.CurrentDomain.BaseDirectory;
+        return Path.Combine(x, "App_Data");
+        throw new NotImplementedException();
+    }
+    
 
     public Task<RoTData?> LoadDataAsync(Query query, User user, CancellationToken cancel)
     {
@@ -54,7 +63,7 @@ public class FsDataStorage : IDataStorage
     private string GetDirectoryName(Query query, User user)
     {
         var directoryName = Path.Combine(
-            _options.DatabaseDirectory,
+            _databaseDirectory,
             user.AccountId,
             query.ToString());
         return directoryName;
