@@ -12,8 +12,8 @@ namespace RankOfTankTests.Infrastructure;
 public class ObjectAccessor
 {
     private readonly Type _targetType;
-    private BindingFlags _publicFlags = BindingFlags.Instance | BindingFlags.Public;
-    private BindingFlags _privateFlags = BindingFlags.Instance | BindingFlags.NonPublic;
+    private readonly BindingFlags _publicFlags = BindingFlags.Instance | BindingFlags.Public;
+    private readonly BindingFlags _privateFlags = BindingFlags.Instance | BindingFlags.NonPublic;
 
     public object Target { get; }
 
@@ -125,7 +125,7 @@ public class ObjectAccessor
     public object GetField(string fieldName)
     {
         var field = GetFieldInfo(fieldName);
-        return field.GetValue(Target);
+        return field?.GetValue(null) ?? throw new MissingFieldException(_targetType.FullName, fieldName);
     }
     /// <summary>Sets a field's value.</summary>
     /// <param name="fieldName">Name of the field.</param>
@@ -133,9 +133,11 @@ public class ObjectAccessor
     public void SetField(string fieldName, object value)
     {
         var field = GetFieldInfo(fieldName);
+        if (field == null)
+            throw new MissingFieldException(_targetType.FullName, fieldName);
         field.SetValue(Target, value);
     }
-    private FieldInfo GetFieldInfo(string name, bool throwOnError = true)
+    private FieldInfo? GetFieldInfo(string name, bool throwOnError = true)
     {
         var field = _targetType.GetField(name, BindingFlags.GetField | _publicFlags) ??
                     _targetType.GetField(name, BindingFlags.GetField | _privateFlags);
@@ -147,10 +149,14 @@ public class ObjectAccessor
     /// <summary>Gets a property's value.</summary>
     /// <param name="propertyName">Name of the property.</param>
     /// <returns>Value of the property.</returns>
-    public object GetProperty(string propertyName)
+    public object? GetProperty(string propertyName)
     {
         var property = GetPropertyInfo(propertyName);
+        if (property == null)
+            throw new ApplicationException($"Property not found: {_targetType.FullName}.{propertyName}");
         var method = property.GetGetMethod(true) ?? property.GetGetMethod(false);
+        if (method == null)
+            throw new MissingMethodException($"Getter not found: {_targetType.FullName}.{propertyName}");
         return method.Invoke(Target, null);
     }
     /// <summary>Sets a property's value.</summary>
@@ -159,10 +165,14 @@ public class ObjectAccessor
     public void SetProperty(string propertyName, object value)
     {
         var property = GetPropertyInfo(propertyName);
+        if (property == null)
+            throw new ApplicationException($"Property not found: {_targetType.FullName}.{propertyName}");
         var method = property.GetSetMethod(true) ?? property.GetSetMethod(false);
+        if (method == null)
+            throw new MissingMethodException($"Setter not found: {_targetType.FullName}.{propertyName}");
         method.Invoke(Target, new [] { value });
     }
-    private PropertyInfo GetPropertyInfo(string name, bool throwOnError = true)
+    private PropertyInfo? GetPropertyInfo(string name, bool throwOnError = true)
     {
         var property = _targetType.GetProperty(name, _publicFlags) ?? _targetType.GetProperty(name, _privateFlags);
         if (property == null && throwOnError)
@@ -173,7 +183,7 @@ public class ObjectAccessor
     /// <summary>Gets a field's or property's value.</summary>
     /// <param name="memberName">Name of the field or property.</param>
     /// <returns>Value of the field or property.</returns>
-    public object GetFieldOrProperty(string memberName)
+    public object? GetFieldOrProperty(string memberName)
     {
         var field = GetFieldInfo(memberName, false);
         if (field != null)
@@ -216,7 +226,7 @@ public class ObjectAccessor
     /// <param name="name">Name of the member.</param>
     /// <param name="args">Arguments to the invocation.</param>
     /// <returns>Result of invocation.</returns>
-    public object Invoke(string name, params object[] args)
+    public object? Invoke(string name, params object[] args)
     {
         var paramTypes = args.Select(x => x.GetType()).ToArray();
         return Invoke(name, paramTypes, args);
@@ -227,12 +237,13 @@ public class ObjectAccessor
     /// order, and type of the parameters for the method to invoke.</param>
     /// <param name="args">Arguments to the invocation.</param>
     /// <returns>Result of invocation</returns>
-    public object Invoke(string name, Type[] parameterTypes, object[] args)
+    public object? Invoke(string name, Type[] parameterTypes, object[] args)
     {
         var method = _targetType.GetMethod(name, _privateFlags, null, parameterTypes, null)
             ?? _targetType.GetMethod(name, _publicFlags, null, parameterTypes, null);
         if (method == null)
-            throw new ApplicationException("Method not found: " + name);
+            throw new MissingMethodException($"Method not found: {_targetType.FullName}.{name}" +
+                                             $"({string.Join(", ", parameterTypes.Select(x => x.Name))})");
         return method.Invoke(Target, args);
     }
     /// <summary>

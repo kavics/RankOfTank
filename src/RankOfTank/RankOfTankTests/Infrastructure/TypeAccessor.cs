@@ -59,7 +59,7 @@ public class TypeAccessor
     public object GetStaticField(string fieldName)
     {
         var field = GetField(fieldName);
-        return field.GetValue(null);
+        return field?.GetValue(null) ?? throw new MissingFieldException(TargetType.FullName, fieldName);
     }
     /// <summary>Sets a static field's value.</summary>
     /// <param name="fieldName">Name of the field.</param>
@@ -67,23 +67,29 @@ public class TypeAccessor
     public void SetStaticField(string fieldName, object value)
     {
         var field = GetField(fieldName);
+        if(field == null)
+            throw new MissingFieldException(TargetType.FullName, fieldName);
         field.SetValue(null, value);
     }
-    private FieldInfo GetField(string name, bool throwOnError = true)
+    private FieldInfo? GetField(string name, bool throwOnError = true)
     {
         var field = TargetType.GetField(name, _publicFlags) ?? TargetType.GetField(name, _privateFlags);
         if (field == null && throwOnError)
-            throw new ApplicationException("Field not found: " + name);
+            throw new MissingFieldException(TargetType.FullName, name);
         return field;
     }
 
     /// <summary>Gets a static property's value.</summary>
     /// <param name="propertyName">Name of the property.</param>
     /// <returns>The value of the static property.</returns>
-    public object GetStaticProperty(string propertyName)
+    public object? GetStaticProperty(string propertyName)
     {
         var property = GetProperty(propertyName);
+        if(property == null)
+            throw new ApplicationException($"Property not found: {TargetType.FullName}.{propertyName}");
         var method = property.GetGetMethod(true) ?? property.GetGetMethod(false);
+        if (method == null)
+            throw new MissingMethodException($"Getter not found: {TargetType.FullName}.{propertyName}");
         return method.Invoke(null, null);
     }
     /// <summary>Sets a static property's value.</summary>
@@ -92,21 +98,25 @@ public class TypeAccessor
     public void SetStaticProperty(string propertyName, object value)
     {
         var property = GetProperty(propertyName);
+        if (property == null)
+            throw new ApplicationException($"Property not found: {TargetType.FullName}.{propertyName}");
         var method = property.GetSetMethod(true) ?? property.GetSetMethod(false);
+        if (method == null)
+            throw new MissingMethodException($"Setter not found: {TargetType.FullName}.{propertyName}");
         method.Invoke(null, new [] { value });
     }
-    private PropertyInfo GetProperty(string name, bool throwOnError = true)
+    private PropertyInfo? GetProperty(string name, bool throwOnError = true)
     {
         var property = TargetType.GetProperty(name, _publicFlags) ?? TargetType.GetProperty(name, _privateFlags);
         if (property == null && throwOnError)
-            throw new ApplicationException("Property not found: " + name);
+            throw new ApplicationException($"Property not found: {TargetType.FullName}.{name}");
         return property;
     }
 
     /// <summary>Gets a static field's or property's value.</summary>
     /// <param name="memberName">Name of the field or property</param>
     /// <returns>The value of the static field or property.</returns>
-    public object GetStaticFieldOrProperty(string memberName)
+    public object? GetStaticFieldOrProperty(string memberName)
     {
         var field = GetField(memberName, false);
         if (field != null)
@@ -114,11 +124,11 @@ public class TypeAccessor
 
         var property = GetProperty(memberName, false);
         if (property == null)
-            throw new ApplicationException("Field or property not found: " + memberName);
+            throw new ApplicationException($"Field or property not found: {TargetType.FullName}.{memberName}");
 
         var method = property.GetGetMethod(true) ?? property.GetGetMethod(false);
         if (method == null)
-            throw new ApplicationException("The property does not have getter: " + memberName);
+            throw new MissingMethodException($"Getter not found: {TargetType.FullName}.{memberName}");
 
         return method.Invoke(null, null);
     }
@@ -136,11 +146,11 @@ public class TypeAccessor
 
         var property = GetProperty(memberName, false);
         if (property == null)
-            throw new ApplicationException("Field or property not found: " + memberName);
+            throw new ApplicationException($"Field or property not found: {TargetType.FullName}.{memberName}");
 
         var method = property.GetSetMethod(true) ?? property.GetSetMethod(false);
         if (method == null)
-            throw new ApplicationException("The property does not have setter: " + memberName);
+            throw new MissingMethodException($"Setter not found: {TargetType.FullName}.{memberName}");
 
         method.Invoke(null, new [] { value });
     }
@@ -149,7 +159,7 @@ public class TypeAccessor
     /// <param name="name">Name of the member.</param>
     /// <param name="args">Arguments to the invocation.</param>
     /// <returns>Result of invocation.</returns>
-    public object InvokeStatic(string name, params object[] args)
+    public object? InvokeStatic(string name, params object[] args)
     {
         var paramTypes = args.Select(x => x.GetType()).ToArray();
         return InvokeStatic(name, paramTypes, args);
@@ -160,12 +170,13 @@ public class TypeAccessor
     /// order, and type of the parameters for the method to invoke.</param>
     /// <param name="args">Arguments to the invocation.</param>
     /// <returns>Result of invocation</returns>
-    public object InvokeStatic(string name, Type[] parameterTypes, object[] args)
+    public object? InvokeStatic(string name, Type[] parameterTypes, object[] args)
     {
         var method = TargetType.GetMethod(name, _privateFlags, null, parameterTypes, null)
                      ?? TargetType.GetMethod(name, _publicFlags, null, parameterTypes, null);
         if (method == null)
-            throw new ApplicationException("Method not found: " + name);
+            throw new MissingMethodException($"Method not found: {TargetType.FullName}.{name}" +
+                                             $"({string.Join(", ", parameterTypes.Select(x=>x.Name))})");
         return method.Invoke(null, args);
     }
 
