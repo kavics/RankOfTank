@@ -30,4 +30,3 @@ public class InMemoryDataStorage : IDataStorage
         return $"{user.AccountId}-{query}";
     }
 }
-

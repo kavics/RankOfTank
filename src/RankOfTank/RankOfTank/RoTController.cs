@@ -29,6 +29,23 @@ public class RoTController : IRoTController
         return userData;
     }
 
+    public async Task<WotGarageData?> GetUserGarageAsync(string userName, CancellationToken cancel)
+    {
+        var user = _userStore.GetUser(userName);
+        if (user == null)
+            return null;
+
+        var rotData = await _connector.DownloadUserGarageAsync(user, cancel).ConfigureAwait(false);
+        if (rotData == null)
+            return null;
+
+        var garageData = DeserializeData<WotGarageDataResponseItem[]>(rotData.Data, user);
+        if (garageData == null)
+            return null;
+
+        return new WotGarageData {TankIds = garageData.Select(x => x.TankId).ToArray()};
+    }
+
     private T? DeserializeData<T>(string source, User user) where T : class
     {
         var jObject = JsonConvert.DeserializeObject(source) as JObject;

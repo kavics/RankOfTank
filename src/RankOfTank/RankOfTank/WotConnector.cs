@@ -32,4 +32,21 @@ public class WotConnector : IWotConnector
 
         return loadedData;
     }
+
+    public async Task<RoTData?> DownloadUserGarageAsync(User user, CancellationToken cancel)
+    {
+        var storedData = await _dataStorage.LoadDataAsync(Query.GarageInfo, user, cancel).ConfigureAwait(false);
+        if (storedData != null && storedData.CreationDate >= DateTime.UtcNow.AddMinutes(-10))
+        {
+            _logger.LogTrace("Data from storage");
+            return storedData;
+        }
+
+        _logger.LogTrace("Data from web");
+        var loadedData = await _dataLoader.LoadDataAsync(Query.GarageInfo, user, cancel);
+        if (loadedData != null)
+            await _dataStorage.SaveDataAsync(Query.GarageInfo, user, loadedData, cancel);
+
+        return loadedData;
+    }
 }

@@ -2,6 +2,7 @@
 {
     public enum Query
     {
-        AccountInfo
+        AccountInfo,
+        GarageInfo
     }
 }

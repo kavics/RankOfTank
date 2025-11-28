@@ -29,8 +29,15 @@ internal class WebLoader : IDataLoader
         {
             case Query.AccountInfo:
                 return $"http://{Host}/wot/account/info/" +
-                          $"?application_id={_accessOptions.Access?.ApiKey}" +
-                          $"&account_id={user.AccountId}";
+                       $"?application_id={_accessOptions.Access?.ApiKey}" +
+                       $"&account_id={user.AccountId}";
+            case Query.GarageInfo:
+                return $"https://{Host}/wot/tanks/stats/" +
+                       $"?application_id={_accessOptions.Access?.ApiKey}" +
+                       $"&account_id={user.AccountId}" +
+                       //$"&access_token={_accessOptions.Access?.AccessToken}" +
+                       $"&in_garage=1&" +
+                       $"fields=tank_id";
 
             default:
                 throw new ArgumentOutOfRangeException(nameof(query), query, null);
